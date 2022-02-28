@@ -69,6 +69,7 @@
       <SubType>Designer</SubType>
     </AppxManifest>
     <Content Include="src\sk_bldCustomStorage.js" />
+    <Content Include="src\sk_bldNote.js" />
     <None Include="Project_TemporaryKey.pfx" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).targets" />
