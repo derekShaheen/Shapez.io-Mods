@@ -3,13 +3,17 @@ const METADATA = {
     website: "https://steamcommunity.com/id/Skrip037/",
     author: "Skrip",
     name: "Custom Storage",
-    version: "1.3.0",
+    version: "1.3.1",
     id: "sk-custom-storage",
     description:
         "Adds a new building which allows a custom storage limit.",
 
-    minimumGameVersion: ">=1.5.0",
+    modId: "1858712",
+    api_key: "5cf048938401c69a7e2293a8c4a17afa",
 };
+
+var updateChecked = false;
+var latestVersion = "";
 
 const enumCustomStorageVariant = {
     [shapez.defaultBuildingVariant]: "Normal",
@@ -53,11 +57,54 @@ class CustomStorageSystem extends shapez.GameSystemWithFilter {
         });
     }
 
-    //update() {
-    //    if (!this.root.gameInitialized) {
-    //        return;
-    //    }
-    //}
+    update() {
+        this.checkVersion();
+    }
+
+    checkVersion() {
+        if (!this.root.gameInitialized || updateChecked || latestVersion === "") {
+            return;
+        }
+        try {
+            if (this.compareVersionNumbers(METADATA.version, latestVersion) < 0) {
+                this.root.hud.signals.notification.dispatch(
+                    "(" + METADATA.version + ") " + METADATA.name + " is out of date. " + latestVersion + " is now available.",
+                    shapez.enumNotificationType.warning
+                );
+            }
+        }
+        catch (error) {
+            console.error(error);
+        }
+        finally {
+            updateChecked = true;
+        }
+    }
+
+    compareVersionNumbers(v1, v2) {
+        var v1parts = v1.split('.');
+        var v2parts = v2.split('.');
+
+        for (var i = 0; i < v1parts.length; ++i) {
+            if (v2parts.length === i) {
+                return 1;
+            }
+
+            if (v1parts[i] === v2parts[i]) {
+                continue;
+            }
+            if (v1parts[i] > v2parts[i]) {
+                return 1;
+            }
+            return -1;
+        }
+
+        if (v1parts.length != v2parts.length) {
+            return -1;
+        }
+
+        return 0;
+    }
 
     drawChunk(parameters, chunk) {
         const contents = chunk.containedEntitiesByLayer.regular;
@@ -102,8 +149,6 @@ class CustomStorageSystem extends shapez.GameSystemWithFilter {
         }
     }
 }
-
-//const enumStorageVariants = { custom: "custom" };
 
 class MetaCustomStorageBuilding extends shapez.ModMetaBuilding {
     constructor() {
@@ -214,14 +259,6 @@ class MetaCustomStorageBuilding extends shapez.ModMetaBuilding {
         entity.addComponent(
             new shapez.ItemEjectorComponent({
                 slots: [
-                    //{
-                    //    pos: new shapez.Vector(0, 0),
-                    //    direction: shapez.enumDirection.top,
-                    //},
-                    //{
-                    //    pos: new shapez.Vector(1, 0),
-                    //    direction: shapez.enumDirection.top,
-                    //},
                 ],
             })
         );
@@ -237,14 +274,6 @@ class MetaCustomStorageBuilding extends shapez.ModMetaBuilding {
                         pos: new shapez.Vector(1, 1),
                         direction: shapez.enumDirection.bottom,
                     },
-                    //{
-                    //    pos: new shapez.Vector(1, 1),
-                    //    direction: shapez.enumDirection.right,
-                    //},
-                    //{
-                    //    pos: new shapez.Vector(0, 1),
-                    //    direction: shapez.enumDirection.left,
-                    //},
                 ],
             })
         );
@@ -390,28 +419,6 @@ class HUDCustomStorageEdit extends shapez.BaseHUDPart {
 
 class Mod extends shapez.Mod {
     init() {
-
-
-        //this.modInterface.addVariantToExistingBuilding(
-        //    shapez.MetaStorageBuilding,
-        //    enumStorageVariants.Custom,
-        //    {
-        //        name: "Custom Storage",
-        //        description: "Allows the player to set the maximum storage amount.",
-        //        variant: shapez.defaultBuildingVariant,
-
-        //        regularImageBase64: RESOURCES["cstorage.png"],
-        //        blueprintImageBase64: RESOURCES["cstorage_blueprint.png"],
-        //        tutorialImageBase64: RESOURCES["cstorage.png"],
-
-        //        dimensions: new shapez.Vector(2, 2),
-
-        //        isUnlocked(root) {
-        //            return root.hubGoals.isRewardUnlocked(shapez.enumHubGoalRewards.reward_storage);
-        //        },
-        //    }
-        //);
-
         this.modInterface.registerComponent(CustomStorageComponent);
         // Register the new building
         this.modInterface.registerNewBuilding({
@@ -447,6 +454,26 @@ class Mod extends shapez.Mod {
                 },
             },
         });
+
+        /////////////////////////
+
+        const headers = {
+            'Accept': 'application/json'
+
+        };
+
+        fetch('https://api.mod.io/v1/games/2978/mods/' + METADATA.modId + '?' + 'api_key=' + METADATA.api_key,
+            {
+                method: 'GET',
+
+                headers: headers
+            })
+            .then(function (res) {
+                return res.json();
+            }).then(function (body) {
+                console.log("Latest version found for " + METADATA.name + "(" + METADATA.version + "): " + body.modfile.version);
+                latestVersion = body.modfile.version;
+            });
     }
 
 }

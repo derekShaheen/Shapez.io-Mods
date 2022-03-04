@@ -1,23 +1,29 @@
-﻿const METADATA = {
+﻿// @ts-nocheck
+const METADATA = {
     website: "https://steamcommunity.com/id/Skrip037/",
     author: "Skrip",
     name: "Note Building",
-    version: "1.1.7",
+    version: "1.1.8",
     id: "sk-note-building",
     description:
         "Adds a new building which allows you to place a note on the plane.",
 
     minimumGameVersion: ">=1.5.0",
+    modId: "1860290",
+    api_key: "5cf048938401c69a7e2293a8c4a17afa",
 };
 
+var updateChecked = false;
+var latestVersion = "";
+
 const enumNoteSize = {
-    [shapez.defaultBuildingVariant]: "Normal",
-    Single: "Single",
-    Normal: "Normal",
-    Large:  "Large",
-    Long:   "Long",
-    ExLarge: "ExLarge",
-    SLarge: "SLarge",
+    [shapez.defaultBuildingVariant]: "Normal", // 2x1
+    Single: "Single",   // 1x1
+    Normal: "Normal",   // 2x1
+    Large:  "Large",    // 2x2
+    Long:   "Long",     // 3x1
+    ExLarge: "ExLarge", // 3x3
+    SLarge: "SLarge",   // 5x5
 };
 
 class MetaNoteBuilding extends shapez.ModMetaBuilding {
@@ -94,7 +100,7 @@ class MetaNoteBuilding extends shapez.ModMetaBuilding {
     }
 
     getSilhouetteColor() {
-        return "#bbdf6d";
+        return "#E3FBFF";
     }
 
     getDimensions(variant) {
@@ -309,11 +315,54 @@ class SkNoteSystem extends shapez.GameSystemWithFilter {
         });
     }
 
-    //update() {
-    //    if (!this.root.gameInitialized) {
-    //        return;
-    //    }
-    //}
+    update() {
+        this.checkVersion();
+    }
+
+    checkVersion() {
+        if (!this.root.gameInitialized || updateChecked || latestVersion === "") {
+            return;
+        }
+        try {
+            if (this.compareVersionNumbers(METADATA.version, latestVersion) < 0) {
+                this.root.hud.signals.notification.dispatch(
+                    "(" + METADATA.version + ") " + METADATA.name + " is out of date. " + latestVersion + " is now available.",
+                    shapez.enumNotificationType.warning
+                );
+            }
+        }
+        catch (error) {
+            console.error(error);
+        }
+        finally {
+            updateChecked = true;
+        }
+    }
+
+    compareVersionNumbers(v1, v2) {
+        var v1parts = v1.split('.');
+        var v2parts = v2.split('.');
+
+        for (var i = 0; i < v1parts.length; ++i) {
+            if (v2parts.length === i) {
+                return 1;
+            }
+
+            if (v1parts[i] === v2parts[i]) {
+                continue;
+            }
+            if (v1parts[i] > v2parts[i]) {
+                return 1;
+            }
+            return -1;
+        }
+
+        if (v1parts.length != v2parts.length) {
+            return -1;
+        }
+
+        return 0;
+    }
 
     drawChunk(parameters, chunk) {
         const contents = chunk.containedEntitiesByLayer.regular;
@@ -586,6 +635,26 @@ class Mod extends shapez.Mod {
                 },
             },
         });
+
+        /////////////////////////
+
+        const headers = {
+            'Accept': 'application/json'
+
+        };
+
+        fetch('https://api.mod.io/v1/games/2978/mods/' + METADATA.modId + '?' + 'api_key=' + METADATA.api_key,
+            {
+                method: 'GET',
+
+                headers: headers
+            })
+            .then(function (res) {
+                return res.json();
+            }).then(function (body) {
+                console.log("Latest version found for " + METADATA.name + "(" + METADATA.version + "): " + body.modfile.version);
+                latestVersion = body.modfile.version;
+            });
     }
 
 }
