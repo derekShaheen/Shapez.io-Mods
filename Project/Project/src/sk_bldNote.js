@@ -13,8 +13,13 @@ const METADATA = {
     api_key: "5cf048938401c69a7e2293a8c4a17afa",
 };
 
-var updateChecked = false;
-var latestVersion = "";
+// Variables for version checking
+var verElement = "";
+var verNeedUpdate = false;
+var verUpdateChecked = false;
+var verLatestVersion = "";
+var verLatestLink = "";
+///
 
 const enumNoteSize = {
     [shapez.defaultBuildingVariant]: "Normal", // 2x1
@@ -161,122 +166,6 @@ class MetaNoteBuilding extends shapez.ModMetaBuilding {
     }
 }
 
-
-//class MetaNoteBuildingWired extends shapez.ModMetaBuilding {
-//    constructor() {
-//        super("SkNoteBuildingWired");
-//    }
-
-//    static getAllVariantCombinations() {
-//        return [
-//            {
-//                name: "Note Building (Wired)",
-//                description: "(1x1) Allows the player to set a note on the field.",
-//                variant: shapez.defaultBuildingVariant,
-
-//                regularImageBase64: RESOURCES.note.base,
-//                blueprintImageBase64: RESOURCES.note.blueprint,
-//                tutorialImageBase64: RESOURCES.note.icon,
-//            },
-//            {
-//                name: "Note Building (Wired)",
-//                description: "(2x1) Allows the player to set a note on the field.",
-//                variant: enumNoteSize.Normal,
-
-//                regularImageBase64: RESOURCES.note.base,
-//                blueprintImageBase64: RESOURCES.note.blueprint,
-//                tutorialImageBase64: RESOURCES.note.icon,
-//            },
-//            {
-//                name: "Note Building (Wired)",
-//                description: "(2x2) Allows the player to set a note on the field.",
-//                variant: enumNoteSize.Large,
-
-//                regularImageBase64: RESOURCES.note.base,
-//                blueprintImageBase64: RESOURCES.note.blueprint,
-//                tutorialImageBase64: RESOURCES.note.icon,
-//            },
-//            {
-//                name: "Note Building (Wired)",
-//                description: "(3x1) Allows the player to set a note on the field.",
-//                variant: enumNoteSize.Long,
-
-//                regularImageBase64: RESOURCES.note.base,
-//                blueprintImageBase64: RESOURCES.note.blueprint,
-//                tutorialImageBase64: RESOURCES.note.icon,
-//            },
-//            {
-//                name: "Note Building (Wired)",
-//                description: "(3x3) Allows the player to set a note on the field.",
-//                variant: enumNoteSize.ExLarge,
-
-//                regularImageBase64: RESOURCES.note.base,
-//                blueprintImageBase64: RESOURCES.note.blueprint,
-//                tutorialImageBase64: RESOURCES.note.icon,
-//            },
-//        ];
-//    }
-
-//    getAvailableVariants(root) {
-//        return [shapez.defaultBuildingVariant, enumNoteSize.Normal, enumNoteSize.Large, enumNoteSize.Long, enumNoteSize.ExLarge];
-//    }
-
-//    updateVariants(entity, rotationVariant, variant) {
-//        const noteSize = enumNoteSize[variant];
-//        entity.components.SkNote.NoteSize = noteSize;
-//    }
-
-//    getSilhouetteColor() {
-//        return "#bbdf6d";
-//    }
-
-//    getDimensions(variant) {
-//        switch (variant) {
-//            case shapez.defaultBuildingVariant:
-//                return new shapez.Vector(1, 1);
-//                break;
-//            case enumNoteSize.Single:
-//                return new shapez.Vector(1, 1);
-//                break;
-//            case enumNoteSize.Normal:
-//                return new shapez.Vector(2, 1);
-//                break;
-//            case enumNoteSize.Large:
-//                return new shapez.Vector(2, 2);
-//                break;
-//            case enumNoteSize.Long:
-//                return new shapez.Vector(3, 1);
-//                break;
-//            case enumNoteSize.ExLarge:
-//                return new shapez.Vector(3, 3);
-//                break;
-//            default:
-//                return new shapez.Vector(1, 1);
-//                break;
-//        }
-//    }
-
-//    getLayer() {
-//        return "wires";
-//    }
-
-//    /**
-//     * @param {GameRoot} root
-//     */
-//    getIsUnlocked(root) {
-//        return root.hubGoals.isRewardUnlocked(shapez.enumHubGoalRewards.reward_wires_painter_and_levers);
-//        return true;
-//    }
-
-//    /**
-//     * Creates the entity at the given location
-//     * @param {Entity} entity
-//     */
-//    setupEntityComponents(entity) {
-//        entity.addComponent(new SkNoteComponent());
-//    }
-//}
-
 ////////////////////////////////////////////////////////////////////////
 class SkNoteComponent extends shapez.Component {
 
@@ -313,55 +202,6 @@ class SkNoteSystem extends shapez.GameSystemWithFilter {
                 editorHud.editNoteText(entity, { deleteOnCancel: true });
             }
         });
-    }
-
-    update() {
-        this.checkVersion();
-    }
-
-    checkVersion() {
-        if (!this.root.gameInitialized || updateChecked || latestVersion === "") {
-            return;
-        }
-        try {
-            if (this.compareVersionNumbers(METADATA.version, latestVersion) < 0) {
-                this.root.hud.signals.notification.dispatch(
-                    "(" + METADATA.version + ") " + METADATA.name + " is out of date. " + latestVersion + " is now available.",
-                    shapez.enumNotificationType.warning
-                );
-            }
-        }
-        catch (error) {
-            console.error(error);
-        }
-        finally {
-            updateChecked = true;
-        }
-    }
-
-    compareVersionNumbers(v1, v2) {
-        var v1parts = v1.split('.');
-        var v2parts = v2.split('.');
-
-        for (var i = 0; i < v1parts.length; ++i) {
-            if (v2parts.length === i) {
-                return 1;
-            }
-
-            if (v1parts[i] === v2parts[i]) {
-                continue;
-            }
-            if (v1parts[i] > v2parts[i]) {
-                return 1;
-            }
-            return -1;
-        }
-
-        if (v1parts.length != v2parts.length) {
-            return -1;
-        }
-
-        return 0;
     }
 
     drawChunk(parameters, chunk) {
@@ -411,44 +251,6 @@ class SkNoteSystem extends shapez.GameSystemWithFilter {
                 }
             }
         }
-
-        //const contentsWires = chunk.containedEntitiesByLayer.wires;
-        //for (let i = 0; i < contentsWires.length; ++i) {
-        //    const entity = contentsWires[i];
-        //    const SkNoteComp = entity.components.SkNote;
-        //    if (!SkNoteComp) {
-        //        continue;
-        //    }
-
-        //    const staticComp = entity.components.StaticMapEntity;
-        //    const context = parameters.context;
-        //    const center = staticComp.getTileSpaceBounds().getCenter().toWorldSpace();
-
-        //    if (parameters.visibleRect.containsCircle(center.x, center.y, 40)) {
-        //        var lines = SkNoteComp.NoteText.split("\\n");
-
-        //        for (var ln = 0; ln < lines.length; ln++) {
-        //            context.fillStyle = "black";
-        //            context.textAlign = "center";
-        //            if (lines.length > 1) {
-        //                context.font = "bold " + SkNoteComp.NoteFontSize + "px GameFont";
-        //                if (SkNoteComp.NoteFontSize <= 14) {
-        //                    context.fillText(lines[ln], center.x, center.y + (11 * ln) - (4 * lines.length)); // if 3 lines, move them all up by one
-        //                } else {
-        //                    context.fillText(lines[ln], center.x, center.y + (SkNoteComp.NoteFontSize * ln) - (4 * lines.length)); // if 3 lines, move them all up by one
-        //                }
-
-        //            } else {
-        //                context.font = "bold " + SkNoteComp.NoteFontSize + "px GameFont";
-        //                if (SkNoteComp.NoteFontSize <= 8) {
-        //                    context.fillText(lines[ln], center.x, center.y - 4 + (11 * ln));
-        //                } else {
-        //                    context.fillText(lines[ln], center.x, center.y + 4 + (11 * ln));
-        //                }
-        //            }
-        //        }
-        //    }
-        //}
     }
 }
 
@@ -478,19 +280,6 @@ class HUDSkNoteEdit extends shapez.BaseHUDPart {
                 }
             }
         }
-
-        //const contentsWired = this.root.map.getLayerContentXY(tile.x, tile.y, "wires");
-        //if (contentsWired) {
-        //    const SkNoteComp = contentsWired.components.SkNote;
-        //    if (SkNoteComp) {
-        //        if (button === shapez.enumMouseButton.left) {
-        //            this.editNoteText(contentsWired, {
-        //                deleteOnCancel: false,
-        //            });
-        //            return shapez.STOP_PROPAGATION;
-        //        }
-        //    }
-        //}
     }
 
     /**
@@ -601,17 +390,6 @@ class Mod extends shapez.Mod {
             metaClass: MetaNoteBuilding,
         });
 
-        //this.modInterface.registerNewBuilding({
-        //    metaClass: MetaNoteBuildingWired,
-        //    buildingIconBase64: RESOURCES.note.icon,
-        //});
-
-        //this.modInterface.addNewBuildingToToolbar({
-        //    toolbar: "wires",
-        //    location: "secondary",
-        //    metaClass: MetaNoteBuildingWired,
-        //});
-
         this.modInterface.registerGameSystem({
             id: "SkNote",
             systemClass: SkNoteSystem,
@@ -636,13 +414,52 @@ class Mod extends shapez.Mod {
             },
         });
 
-        /////////////////////////
+        /// Version Check
+
+        var check = {
+            compareVersionNumbers: function (v1, v2) {
+                var v1parts = v1.split('.');
+                var v2parts = v2.split('.');
+
+                for (var i = 0; i < v1parts.length; ++i) {
+                    if (v2parts.length === i) {
+                        return 1;
+                    }
+
+                    if (v1parts[i] === v2parts[i]) {
+                        continue;
+                    }
+                    if (v1parts[i] > v2parts[i]) {
+                        return 1;
+                    }
+                    return -1;
+                }
+
+                if (v1parts.length != v2parts.length) {
+                    return -1;
+                }
+
+                return 0;
+            },
+            version: function () {
+                try {
+                    if (check.compareVersionNumbers(METADATA.version, verLatestVersion) < 0) {
+                        verNeedUpdate = true;
+                    }
+                }
+                catch (error) {
+                    console.error(error);
+                }
+                finally {
+                    verUpdateChecked = true;
+                }
+            },
+        }
 
         const headers = {
             'Accept': 'application/json'
 
         };
-
         fetch('https://api.mod.io/v1/games/2978/mods/' + METADATA.modId + '?' + 'api_key=' + METADATA.api_key,
             {
                 method: 'GET',
@@ -653,10 +470,39 @@ class Mod extends shapez.Mod {
                 return res.json();
             }).then(function (body) {
                 console.log("Latest version found for " + METADATA.name + "(" + METADATA.version + "): " + body.modfile.version);
-                latestVersion = body.modfile.version;
+                verLatestVersion = body.modfile.version;
+                verLatestLink = body.profile_url;
+                check.version();
             });
-    }
 
+        this.signals.stateEntered.add(state => {
+            if (state.key === "MainMenuState" && verNeedUpdate) {
+                verElement = document.createElement("div");
+                var parent = document.querySelector("#state_MainMenuState > div.mainWrapper");
+                parent.style.cssText += 'grid-row-gap:calc(3px*var(--ui-scale));';
+
+                verElement.id = "sk_upd_note_" + METADATA.name.split(" ").join("");
+                parent.appendChild(verElement);
+
+                const button = document.createElement("button");
+                button.classList.add("styledButton");
+                button.innerText = "Version (" + verLatestVersion + ") is available for " + METADATA.name + " (" + METADATA.version + ")";
+                button.addEventListener("click", () => {
+                    this.app.platformWrapper.openExternalLink(verLatestLink);
+                });
+                verElement.appendChild(button);
+            }
+        });
+
+        this.modInterface.registerCss(`
+                #sk_upd_note_` + METADATA.name.split(" ").join("") + ` {
+                    z-index: 0;
+                    display: block;
+                    grid-column: 2 / 3;
+                }
+            `);
+        /// End Version Check
+    }
 }
 
 const RESOURCES = {
