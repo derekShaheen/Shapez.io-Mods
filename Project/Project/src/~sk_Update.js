@@ -2,7 +2,7 @@
 const METADATA = {
     website: "https://steamcommunity.com/id/Skrip037/",
     author: "Skrip",
-    name: "SkUpdate - Mod Update Notifier",
+    name: "SkUpdate - Update Notifier",
     version: "0.9.0",
     id: "sk-update",
     description:

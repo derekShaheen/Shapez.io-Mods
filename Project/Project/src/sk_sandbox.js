@@ -9,7 +9,7 @@ const METADATA = {
         "Enables the sandbox mode.",
 
     minimumGameVersion: ">=1.5.0",
-    modId: "1863733",
+    modId: 1863733,
 };
 
 class Mod extends shapez.Mod {
