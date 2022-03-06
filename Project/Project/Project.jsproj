@@ -72,7 +72,7 @@
     <Content Include="src\sk_bldMicroHub.js" />
     <Content Include="src\sk_bldNote.js" />
     <Content Include="src\sk_sandbox.js" />
-    <Content Include="src\~sk_UpdateChecker.js" />
+    <Content Include="src\~sk_Update.js" />
     <None Include="Project_TemporaryKey.pfx" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\$(WMSJSProjectDirectory)\Microsoft.VisualStudio.$(WMSJSProject).targets" />
