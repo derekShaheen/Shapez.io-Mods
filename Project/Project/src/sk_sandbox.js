@@ -3,7 +3,7 @@ const METADATA = {
     website: "https://steamcommunity.com/id/Skrip037/",
     author: "tobspr & Skrip",
     name: "Sandbox",
-    version: "1.1.0",
+    version: "1.2.1",
     id: "sk-sandbox",
     description:
         "Enables the sandbox mode.",
@@ -32,13 +32,5 @@ class Mod extends shapez.Mod {
             location: "primary",
             metaClass: shapez.MetaItemProducerBuilding,
         });
-
-        this.modInterface.registerCss(`
-                #sk_upd_note_` + METADATA.name.split(" ").join("") + ` {
-                    z-index: 0;
-                    display: block;
-                    grid-column: 2 / 3;
-                }
-            `);
     }
 }
