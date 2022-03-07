@@ -3,7 +3,7 @@ const METADATA = {
     website: "https://steamcommunity.com/id/Skrip037/",
     author: "Skrip",
     name: "SkUpdate - Update Notifier",
-    version: "0.9.2",
+    version: "0.9.1",
     id: "sk-update",
     description:
         "Checks the version of all compatible mods and displays if there is an update.",
@@ -21,6 +21,7 @@ var verModIds = []; // Store mod ids separately for optimized compare
 var verModsToUpdate = []; // List of mods that need to be updated
 var verModLatestVersion = []; // List of latest versions for comparison
 var verModLink = []; // List that contains links for mods that need to be updated
+var verResponseLatencyStart = -1; // Store timer for latency measure
 ///
 
 
@@ -34,6 +35,8 @@ class Mod extends shapez.Mod {
 
         };
 
+        verResponseLatencyStart = new Date().getTime();
+
         fetch('https://api.mod.io/v1/games/2978/mods' + '?' + 'api_key=' + METADATA.api_key, // Pull all mods
             {
                 method: 'GET',
@@ -43,7 +46,7 @@ class Mod extends shapez.Mod {
             .then(function (res) {
                 return res.json();
             }).then(function (body) {
-                console.log("(SkUpdate) ==> Response received from mod.io - Processing")
+                console.log("(SkUpdate) ==> Response received from mod.io (" + (new Date().getTime() - verResponseLatencyStart) + "ms) - Processing")
                 check.allMods(body);
             });
 
@@ -102,16 +105,17 @@ class Mod extends shapez.Mod {
                             var modIndex = verModIds.indexOf(jmod.id.toString()); // For the mod we are examining, do we have it installed?
                             if (modIndex > -1) { // Yes we do.
                                 if (check.version(verInstalledMods[modIndex].metadata.version, jmod.modfile.version)) { // Compare the versions
-                                    console.log("(SkUpdate) => " + verInstalledMods[modIndex].metadata.name + " (" + verInstalledMods[modIndex].metadata.version + ") => (" + jmod.modfile.version + ") [NEW]");
+                                    console.log("(SkUpdate) => \x1b[33m[NEW]\x1b[37m " + verInstalledMods[modIndex].metadata.name + " (" + verInstalledMods[modIndex].metadata.version + ") => (" + jmod.modfile.version + ")");
                                     verModsToUpdate.push(verInstalledMods[modIndex]); // Need to update this mod - push data to the arrays (These will be converted to proper objects in a future version of this)
                                     verModLatestVersion.push(jmod.modfile.version);
                                     verModLink.push(jmod.profile_url);
                                 } else {
-                                    console.log("(SkUpdate) => " + verInstalledMods[modIndex].metadata.name + " (" + verInstalledMods[modIndex].metadata.version + ") => (" + jmod.modfile.version + ") [UP TO DATE]");
+                                    console.log("(SkUpdate) => \x1b[32m[UTD]\x1b[37m " + verInstalledMods[modIndex].metadata.name + " (" + verInstalledMods[modIndex].metadata.version + ") => (" + jmod.modfile.version + ")");
                                 }
                             }
                         }
                     }
+                    console.log("(SkUpdate) => Processing complete.");
                 }
                 catch (error) {
                     console.error(error);
