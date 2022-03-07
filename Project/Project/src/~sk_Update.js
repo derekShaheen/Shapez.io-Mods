@@ -47,6 +47,7 @@ class Mod extends shapez.Mod {
                 return res.json();
             }).then(function (body) {
                 console.log("(SkUpdate) ==> Response received from mod.io (" + (new Date().getTime() - verResponseLatencyStart) + "ms) - Processing")
+                verResponseLatencyStart = new Date().getTime();
                 check.allMods(body);
             });
 
@@ -105,7 +106,7 @@ class Mod extends shapez.Mod {
                             var modIndex = verModIds.indexOf(jmod.id.toString()); // For the mod we are examining, do we have it installed?
                             if (modIndex > -1) { // Yes we do.
                                 if (check.version(verInstalledMods[modIndex].metadata.version, jmod.modfile.version)) { // Compare the versions
-                                    console.log("(SkUpdate) => \x1b[33m[NEW]\x1b[37m " + verInstalledMods[modIndex].metadata.name + " (" + verInstalledMods[modIndex].metadata.version + ") => (" + jmod.modfile.version + ")");
+                                    console.log("(SkUpdate) => \x1b[33m[NEW]\x1b[37m " + verInstalledMods[modIndex].metadata.name + " (" + verInstalledMods[modIndex].metadata.version + ") => (\x1b[32m" + jmod.modfile.version + "\x1b[37m)");
                                     verModsToUpdate.push(verInstalledMods[modIndex]); // Need to update this mod - push data to the arrays (These will be converted to proper objects in a future version of this)
                                     verModLatestVersion.push(jmod.modfile.version);
                                     verModLink.push(jmod.profile_url);
@@ -115,7 +116,7 @@ class Mod extends shapez.Mod {
                             }
                         }
                     }
-                    console.log("(SkUpdate) => Processing complete.");
+                    console.log("(SkUpdate) => Processing complete (" + (new Date().getTime() - verResponseLatencyStart) + "ms).");
                 }
                 catch (error) {
                     console.error(error);
