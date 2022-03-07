@@ -9,6 +9,7 @@ const METADATA = {
         "Checks the version of all compatible mods and displays if there is an update.",
 
     minimumGameVersion: ">=1.5.0",
+    doesNotAffectSavegame: true,
     modId: "1870560",
     api_key: "5cf048938401c69a7e2293a8c4a17afa",
 };
@@ -126,12 +127,16 @@ class Mod extends shapez.Mod {
                 for (let i = 0; i < verModsToUpdate.length; i++) {
                     verElement = document.createElement("div");
                     var curMod = verModsToUpdate[i];
-                    if (verModsToUpdate.length > 3 && i % 2 == 0) { // Is the index even or odd? (should it go on the left or right?). Place all on right unless more than 3 mods.
-                        verElement.id = "sk_upd_note_left"; // even
+                    if (verModsToUpdate.length > 3) {
+                        if (i % 2 == 0) { // Is the index even or odd? (should it go on the left or right?). Place all on right unless more than 3 mods.
+                            verElement.id = "sk_upd_note_left"; // even
+                        } else {
+                            verElement.id = "sk_upd_note_right"; // odd
+                        }
                     } else {
-                        verElement.id = "sk_upd_note_right"; // odd
+                        verElement.id = "sk_upd_note_centered" // centered
                     }
-                    
+
                     parent.appendChild(verElement);
 
                     const button = document.createElement("button");
@@ -150,6 +155,11 @@ class Mod extends shapez.Mod {
                     z-index: 0;
                     display: block;
                     grid-column: 2;
+                }
+                #sk_upd_note_centered {
+                    z-index: 0;
+                    display: block;
+                    grid-column: 1 / 3;
                 }
                 #sk_upd_note_left {
                     z-index: 0;

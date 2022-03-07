@@ -3,7 +3,7 @@ const METADATA = {
     website: "https://steamcommunity.com/id/Skrip037/",
     author: "Skrip",
     name: "Note Building",
-    version: "1.1.9",
+    version: "1.1.8",
     id: "sk-note-building",
     description:
         "Adds a new building which allows you to place a note on the plane.",
