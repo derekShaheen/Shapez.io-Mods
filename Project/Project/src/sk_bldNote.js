@@ -3,7 +3,7 @@ const METADATA = {
     website: "https://steamcommunity.com/id/Skrip037/",
     author: "Skrip",
     name: "Note Building",
-    version: "1.1.8",
+    version: "1.1.9",
     id: "sk-note-building",
     description:
         "Adds a new building which allows you to place a note on the plane.",
@@ -225,17 +225,17 @@ class SkNoteSystem extends shapez.GameSystemWithFilter {
                         if (lines.length > 1) {
                             context.font = "bold " + SkNoteComp.NoteFontSize + "px GameFont";
                             if (SkNoteComp.NoteFontSize <= 14) {
-                                context.fillText(lines[ln], center.x, center.y + (11 * ln) - (4 * lines.length)); // if 3 lines, move them all up by one
+                                context.fillText(lines[ln], center.x + 1, center.y + (11 * ln) - (4 * lines.length)); // if 3 lines, move them all up by one
                             } else {
-                                context.fillText(lines[ln], center.x, center.y + (SkNoteComp.NoteFontSize * ln) - (4 * lines.length)); // if 3 lines, move them all up by one
+                                context.fillText(lines[ln], center.x + 1, center.y + (SkNoteComp.NoteFontSize * ln) - (4 * lines.length)); // if 3 lines, move them all up by one
                             }
 
                         } else {
                             context.font = "bold " + SkNoteComp.NoteFontSize + "px GameFont";
                             if (SkNoteComp.NoteFontSize <= 8) {
-                                context.fillText(lines[ln], center.x, center.y - 4 + (11 * ln));
+                                context.fillText(lines[ln], center.x + 1, center.y - 4 + (11 * ln));
                             } else {
-                                context.fillText(lines[ln], center.x, center.y + 4 + (11 * ln));
+                                context.fillText(lines[ln], center.x + 1, center.y + 4 + (11 * ln));
                             }
                         }
                     }

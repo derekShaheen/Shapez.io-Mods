@@ -131,8 +131,13 @@ class MetaCustomStorageBuilding extends shapez.ModMetaBuilding {
     }
 
     updateVariants(entity, rotationVariant, variant) {
-        const csVar = enumCustomStorageVariant[variant];
-        entity.components.CustomStorage.CustomStorageVariant = csVar;
+        try {
+            const csVar = enumCustomStorageVariant[variant];
+            entity.components.CustomStorage.CustomStorageVariant = csVar;
+        }
+        catch (error) {
+
+        }
 
         const ejectorComposition = entity.components.ItemEjector;
 
