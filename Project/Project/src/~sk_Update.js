@@ -3,7 +3,7 @@ const METADATA = {
     website: "https://steamcommunity.com/id/Skrip037/",
     author: "Skrip",
     name: "SkUpdate - Update Notifier",
-    version: "0.9.5",
+    version: "0.9.2",
     id: "sk-update",
     description:
         "Checks the version of all compatible mods and displays if there is an update.",
@@ -15,6 +15,7 @@ const METADATA = {
 
     settings: {
         showOnMainMenu: true, // Show the large buttons on the main menu / Otherwise just show on Mods page and small notification on main menu
+        showDirectDownloadLink: true, // Show a direct download link to the update file on the mods Mod page
     },
 };
 
@@ -25,6 +26,7 @@ var verModIds = []; // Store mod ids separately for optimized compare
 var verModsToUpdate = []; // List of mods that need to be updated
 var verModLatestVersion = []; // List of latest versions for comparison
 var verModLink = []; // List that contains links for mods that need to be updated
+var verModFileLink = []; // List that contains links for the mod files that need to be updated
 var verResponseLatencyStart = -1; // Store timer for latency measure
 ///
 
@@ -113,6 +115,7 @@ class Mod extends shapez.Mod {
                                     verModsToUpdate.push(verInstalledMods[modIndex]); // Need to update this mod - push data to the arrays (These will be converted to proper objects in a future version of this)
                                     verModLatestVersion.push(jmod.modfile.version);
                                     verModLink.push(jmod.profile_url);
+                                    verModFileLink.push(jmod.modfile.download.binary_url);
                                 } else {
                                     console.log("(SkUpdate) => \x1b[32m[UTD]\x1b[37m " + verInstalledMods[modIndex].metadata.name + " (" + verInstalledMods[modIndex].metadata.version + ") => (" + jmod.modfile.version + ")");
                                 }
@@ -219,14 +222,24 @@ class Mod extends shapez.Mod {
                                 parentList[i].childNodes[1].innerText += " (" + verModLatestVersion[installedModIndex] + ")";
 
                                 if (!parentList[i].childNodes[0].innerHTML.includes("shapez.mod.io")) { // Are they already linking to the mod.io?
-                                    //Generate update link
+                                    //Doesn't seem so. Generate update link
                                     var modLink = document.createElement("a");
-                                    var modLinkText = document.createTextNode("Update Link");
-                                    modLink.setAttribute("class", "website");
+                                    var modLinkText = document.createTextNode("Mod.io Link");
                                     modLink.setAttribute("href", verModLink[installedModIndex]);
+                                    modLink.setAttribute("class", "website");
                                     modLink.setAttribute("target", "_blank");
                                     modLink.appendChild(modLinkText);
                                     parentList[i].childNodes[0].appendChild(modLink);
+
+                                    if (METADATA.settings.showDirectDownloadLink) {
+                                        var modUpdLink = document.createElement("a");
+                                        var modUpdLinkText = document.createTextNode("(Direct Download) Update Link");
+                                        modUpdLink.setAttribute("href", verModFileLink[installedModIndex]);
+                                        modUpdLink.setAttribute("class", "website");
+                                        modUpdLink.setAttribute("target", "_blank");
+                                        modUpdLink.appendChild(modUpdLinkText);
+                                        parentList[i].childNodes[0].appendChild(modUpdLink);
+                                    }
                                 }
                             } else {
                                 utdImg.setAttribute("src", RESOURCES.ind.ready); // Yes it is compatible, no it does not need to be updated
@@ -235,7 +248,7 @@ class Mod extends shapez.Mod {
                             utdImg.setAttribute("src", RESOURCES.ind.nc); // No it is not compatible
                         }
 
-                        parentList[i].appendChild(utdImg);
+                        parentList[i].childNodes[1].appendChild(utdImg);
                     }
                 }
             }
