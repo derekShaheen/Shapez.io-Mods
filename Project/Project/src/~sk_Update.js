@@ -3,7 +3,7 @@ const METADATA = {
     website: "https://steamcommunity.com/id/Skrip037/",
     author: "Skrip",
     name: "SkUpdate - Update Notifier",
-    version: "0.9.2",
+    version: "0.9.6",
     id: "sk-update",
     description:
         "Checks the version of all compatible mods and displays if there is an update.",
@@ -230,16 +230,15 @@ class Mod extends shapez.Mod {
                                     modLink.setAttribute("target", "_blank");
                                     modLink.appendChild(modLinkText);
                                     parentList[i].childNodes[0].appendChild(modLink);
-
-                                    if (METADATA.settings.showDirectDownloadLink) {
-                                        var modUpdLink = document.createElement("a");
-                                        var modUpdLinkText = document.createTextNode("(Direct Download) Update Link");
-                                        modUpdLink.setAttribute("href", verModFileLink[installedModIndex]);
-                                        modUpdLink.setAttribute("class", "website");
-                                        modUpdLink.setAttribute("target", "_blank");
-                                        modUpdLink.appendChild(modUpdLinkText);
-                                        parentList[i].childNodes[0].appendChild(modUpdLink);
-                                    }
+                                }
+                                if (METADATA.settings.showDirectDownloadLink) { // Show a direct download link if indicated
+                                    var modUpdLink = document.createElement("a");
+                                    var modUpdLinkText = document.createTextNode("(Direct Download) Update Link");
+                                    modUpdLink.setAttribute("href", verModFileLink[installedModIndex]);
+                                    modUpdLink.setAttribute("class", "website");
+                                    modUpdLink.setAttribute("target", "_blank");
+                                    modUpdLink.appendChild(modUpdLinkText);
+                                    parentList[i].childNodes[0].appendChild(modUpdLink);
                                 }
                             } else {
                                 utdImg.setAttribute("src", RESOURCES.ind.ready); // Yes it is compatible, no it does not need to be updated
