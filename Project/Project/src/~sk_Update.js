@@ -3,7 +3,7 @@ const METADATA = {
     website: "https://steamcommunity.com/id/Skrip037/",
     author: "Skrip",
     name: "SkUpdate - Update Notifier",
-    version: "0.9.6",
+    version: "0.9.7",
     id: "sk-update",
     description:
         "Checks the version of all compatible mods and displays if there is an update.",
@@ -16,6 +16,7 @@ const METADATA = {
     settings: {
         showOnMainMenu: true, // Show the large buttons on the main menu / Otherwise just show on Mods page and small notification on main menu
         showDirectDownloadLink: true, // Show a direct download link to the update file on the mods Mod page
+        debugVerbose: true,
     },
 };
 
@@ -49,6 +50,7 @@ class Mod extends shapez.Mod {
                 return res.json();
             }).then(function (body) {
                 console.log("(SkUpdate) ==> Response received from mod.io API (" + (new Date().getTime() - verResponseLatencyStart) + "ms) - Processing") // How long did it take to get a response?
+                if (METADATA.settings.debugVerbose) { console.log(body); }
                 verResponseLatencyStart = new Date().getTime();
                 check.allMods(body);
             });
@@ -103,9 +105,9 @@ class Mod extends shapez.Mod {
                     return false;
                 }
             },
-            allMods: function (modJson) {
+            allMods: async function (modJson) {
                 try {
-                    if (verInstalledMods) {
+                    if (verInstalledMods.length > 0) {
                         for (let i = 0; i < modJson.data.length; i++) { // Loop over all mods
                             var jmod = modJson.data[i];
                             var modIndex = verModIds.indexOf(jmod.id.toString()); // For the mod we are examining, do we have it installed?
@@ -116,6 +118,10 @@ class Mod extends shapez.Mod {
                                     verModLatestVersion.push(jmod.modfile.version);
                                     verModLink.push(jmod.profile_url);
                                     verModFileLink.push(jmod.modfile.download.binary_url);
+                                    if (METADATA.settings.debugVerbose) {
+                                        console.log("(SkUpdate) Parsed out - Mod: " + verInstalledMods[modIndex].metadata.name + " ID: " + jmod.id.toString() + " Version: " + jmod.modfile.version + " MLink: " + jmod.profile_url
+                                            + " DLink: " + jmod.modfile.download.binary_url)
+                                    }
                                 } else {
                                     console.log("(SkUpdate) => \x1b[32m[UTD]\x1b[37m " + verInstalledMods[modIndex].metadata.name + " (" + verInstalledMods[modIndex].metadata.version + ") => (" + jmod.modfile.version + ")");
                                 }
@@ -197,16 +203,20 @@ class Mod extends shapez.Mod {
             if (state.key === "ModsState") {
                 if (this.modLoader.mods.length > 0) { // Have other mods been found?
                     var parentList = document.querySelectorAll('#state_ModsState > div.container > div > div.modsList > div.mod')
-                    for (let i = 0; i < parentList.length; i++) {
-                        parentList[i].style.cssText += 'grid-row-gap:0;';
+                    for (let i = 0; i < parentList.length; i++) { // For each mod in the list..
+                        //parentList[i].style.cssText += 'grid-row-gap:0;'; // No longer needed, our objects are all contained on one row now
 
                         var installedModIndex = -1;
                         //Locate the mod found in the html list within the mod loader objects
                         if (verInstalledMods.length > 0) {
                             for (let m = 0; m < verInstalledMods.length; m++) {
-                                if (verInstalledMods[m].metadata.name === parentList[i].childNodes[0].innerText.split("\n")[0]) {
-                                    installedModIndex = m;
-                                    break;
+                                try {
+                                    if (verInstalledMods[m].metadata.name === parentList[i].childNodes[0].innerText.split("\n")[0]) { // Does the name in the list match any of our compatible mods?
+                                        installedModIndex = m;
+                                        break;
+                                    }
+                                } catch (error) {
+                                    continue;
                                 }
                             }
                         }
@@ -217,24 +227,35 @@ class Mod extends shapez.Mod {
                         utdImg.style.cssText += 'padding-top:3px';
 
                         if (installedModIndex >= 0) { // Is the mod compatible?
-                            if (verModsToUpdate.indexOf(verInstalledMods[installedModIndex]) > -1) { // Does it need to be updated?
+                            var mtuList = verModsToUpdate.indexOf(verInstalledMods[installedModIndex]);
+                            if (mtuList > -1) { // Does it need to be updated?
                                 utdImg.setAttribute("src", RESOURCES.ind.new); // Yes it is compatible, yes it needs updated
-                                parentList[i].childNodes[1].innerText += " (" + verModLatestVersion[installedModIndex] + ")";
 
-                                if (!parentList[i].childNodes[0].innerHTML.includes("shapez.mod.io")) { // Are they already linking to the mod.io?
+                                if (verModLatestVersion[mtuList]) {
+                                    parentList[i].childNodes[1].innerText += " (" + verModLatestVersion[mtuList] + ")";
+                                    if (METADATA.settings.debugVerbose) {
+                                        console.log("(SkUpdate) Mod Found: (" + installedModIndex + ") Version:" + verModLatestVersion[mtuList]
+                                            + " MLink: " + verModLink[installedModIndex] + " DLink: " + verModFileLink[mtuList]);
+                                    }
+                                }
+
+                                if (METADATA.settings.debugVerbose) { console.log(verModLink[mtuList]); }
+                                if (!parentList[i].childNodes[0].innerHTML.includes("mod.io") && verModLink[mtuList]) { // Are they already linking to the mod.io? And we received the link?
                                     //Doesn't seem so. Generate update link
                                     var modLink = document.createElement("a");
                                     var modLinkText = document.createTextNode("Mod.io Link");
-                                    modLink.setAttribute("href", verModLink[installedModIndex]);
+                                    modLink.setAttribute("href", verModLink[mtuList]);
                                     modLink.setAttribute("class", "website");
                                     modLink.setAttribute("target", "_blank");
                                     modLink.appendChild(modLinkText);
                                     parentList[i].childNodes[0].appendChild(modLink);
                                 }
-                                if (METADATA.settings.showDirectDownloadLink) { // Show a direct download link if indicated
+                                if (METADATA.settings.debugVerbose) { console.log(verModFileLink[mtuList]); }
+
+                                if (METADATA.settings.showDirectDownloadLink && verModFileLink[mtuList]) { // Show a direct download link if indicated and we received it
                                     var modUpdLink = document.createElement("a");
                                     var modUpdLinkText = document.createTextNode("(Direct Download) Update Link");
-                                    modUpdLink.setAttribute("href", verModFileLink[installedModIndex]);
+                                    modUpdLink.setAttribute("href", verModFileLink[mtuList]);
                                     modUpdLink.setAttribute("class", "website");
                                     modUpdLink.setAttribute("target", "_blank");
                                     modUpdLink.appendChild(modUpdLinkText);
@@ -246,7 +267,6 @@ class Mod extends shapez.Mod {
                         } else {
                             utdImg.setAttribute("src", RESOURCES.ind.nc); // No it is not compatible
                         }
-
                         parentList[i].childNodes[1].appendChild(utdImg);
                     }
                 }
@@ -275,6 +295,8 @@ class Mod extends shapez.Mod {
                     grid-column: 2;
                 }
             `);
+
+
     }
 }
 
